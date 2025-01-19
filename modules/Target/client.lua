@@ -3,7 +3,7 @@ SD.Target = {}
 
 --- Initialize the target system by checking available resources and setting the target module.
 local Initialize = function()
-    local resources = {"qb-target", "qtarget", "ox_target"}  -- List of potential target resources.
+    local resources = {"qb-target", "qtarget", "ox_target", "mythic-targeting"}  -- List of potential target resources.
     for _, resource in ipairs(resources) do
         if GetResourceState(resource) == 'started' then
             if resource == 'ox_target' then
@@ -55,25 +55,35 @@ end
 ---@param debugPoly boolean Whether to debug the polygon.
 ---@return handler The handle to the created zone.
 SD.Target.AddCircleZone = function(identifier, coords, radius, data, debugPoly)
-    local handler = exports[target]:AddCircleZone(identifier, coords, radius, {
-        name = identifier,
-        useZ = true,
-        debugPoly = debugPoly,
-    }, {
-        options = data.options,
-        distance = data.distance,
-    })
-    return handler
+    if target == "mythic-targeting" then
+        Targeting.Zones:AddCircle(identifier, data.icon, coords, radius, data.options, data.menuArray, data.proximity or 2.0, debugPoly)
+        Targeting.Zones:Refresh() -- Mythic targeting requires refresh after adding.
+        return identifier
+    else
+        local handler = exports[target]:AddCircleZone(identifier, coords, radius, {
+            name = identifier,
+            useZ = true,
+            debugPoly = debugPoly,
+        }, {
+            options = data.options,
+            distance = data.distance,
+        })
+        return handler
+    end
 end
 
 --- Add a target entity.
 ---@param entityId number The entity ID to target.
 ---@param data table Additional data such as options and distance.
 SD.Target.AddTargetEntity = function(entityId, data)
-    exports[target]:AddTargetEntity(entityId, {
-        options = data.options,
-        distance = data.distance,
-    })
+    if target == "mythic-targeting" then
+        Targeting:AddEntity(entityId, data.icon, data.menuArray, data.distance or 2.0)
+    else
+        exports[target]:AddTargetEntity(entityId, {
+            options = data.options,
+            distance = data.distance,
+        })
+    end
 end
 
 --- Add a target model.
@@ -89,13 +99,21 @@ end
 --- Remove a target entity.
 ---@param entity number The entity to remove from targeting.
 SD.Target.RemoveTargetEntity = function(entity)
-    exports[target]:RemoveTargetEntity(entity)
+    if target == "mythic-targeting" then
+        Targeting:RemoveEntity(entity)
+    else
+        exports[target]:RemoveTargetEntity(entity)
+    end
 end
 
 --- Remove a zone.
 ---@param identifier string The identifier for the zone to remove.
 SD.Target.RemoveZone = function(identifier)
-    exports[target]:RemoveZone(identifier)
+    if target == "mythic-targeting" then
+        Targeting.Zones:RemoveZone(identifier)
+    else
+        exports[target]:RemoveZone(identifier)
+    end
 end
 
 --- Add a global ped target.
