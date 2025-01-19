@@ -12,6 +12,10 @@ local GetPlayer = function()
         return function(source)
             return QBCore.Functions.GetPlayer(source)
         end
+    elseif Framework == 'mythic' then
+        return function(source)
+            return Fetch:Source(source)
+        end
     else
         -- Fallback function for unsupported frameworks. Logs an error message.
         return function(source)
