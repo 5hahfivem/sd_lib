@@ -24,6 +24,24 @@ local AddMoney = function()
         return function(player, moneyType, amount)
             player.Functions.AddMoney(ConvertMoneyType(moneyType), amount)
         end
+    elseif Framework == 'mythic' then
+        return function(player, moneyType, amount, transactionData)
+            if moneyType == "cash" then
+                Wallet:Modify(player.source, math.ceil(amount))
+            elseif moneyType == "bank" then
+                local char = player:GetData("Character")
+                local account = Banking.Accounts:GetPersonal(char:GetData("SID"))?.Balance
+                Banking.Balance:Deposit(account, amount, {
+                    type = "deposit",
+                    title = transactionData and transactionData.title or "Transaction",
+                    description = transactionData and transactionData.description or "Money added to account.",
+                    transactionAccount = false,
+                    data = {
+                        character = char:GetData("SID"),
+                    },
+                })
+            end
+        end
     else
         return function()
             error("Unsupported framework for AddMoney.")
@@ -43,6 +61,24 @@ local RemoveMoney = function()
     elseif Framework == 'qb' or Framework == 'qbx' then
         return function(player, moneyType, amount)
             player.Functions.RemoveMoney(ConvertMoneyType(moneyType), amount)
+        end
+    elseif Framework == 'mythic' then
+        return function(player, moneyType, amount, transactionData)
+            if moneyType == "cash" then
+                Wallet:Modify(player.source, -math.ceil(amount))
+            elseif moneyType == "bank" then
+                local char = player:GetData("Character")
+                local account = Banking.Accounts:GetPersonal(char:GetData("SID"))?.Balance
+                Banking.Balance:Withdraw(account, amount, {
+                    type = "withdraw",
+                    title = transactionData and transactionData.title or "Transaction",
+                    description = transactionData and transactionData.description or "Money removed from account.",
+                    transactionAccount = false,
+                    data = {
+                        character = char:GetData("SID"),
+                    },
+                })
+            end
         end
     else
         return function()
@@ -64,6 +100,16 @@ local GetPlayerFunds = function()
     elseif Framework == 'qb' or Framework == 'qbx' then
         return function(player, moneyType)
             return player.PlayerData.money[ConvertMoneyType(moneyType)] or 0
+        end
+    elseif Framework == 'mythic' then
+        return function(player, moneyType)
+            if moneyType == "cash" then
+                return Wallet:GetBalance(player.source)
+            elseif moneyType == "bank" then
+                local char = player:GetData("Character")
+                return Banking.Accounts:GetPersonal(char:GetData("SID"))?.Balance or 0
+            end
+            return 0
         end
     else
         return function()
