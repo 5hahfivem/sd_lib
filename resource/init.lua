@@ -1,3 +1,30 @@
+local function retrieveComponents()
+	Targeting = exports["mythic-base"]:FetchComponent("Targeting")
+	Progress = exports["mythic-base"]:FetchComponent("Progress")
+	Notification = exports["mythic-base"]:FetchComponent("Notification")
+	Callbacks = exports["mythic-base"]:FetchComponent("Callbacks")
+	Inventory = exports["mythic-base"]:FetchComponent("Inventory")
+    Wallet = exports["mythic-base"]:FetchComponent("Wallet")
+end
+
+AddEventHandler("sd_lib:Shared:DependencyUpdate", retrieveComponents)
+
+AddEventHandler("Core:Shared:Ready", function()
+	exports["mythic-base"]:RequestDependencies("sd_lib", {
+		"Targeting",
+		"Progress",
+		"Notification",
+		"Callbacks",
+		"Inventory",
+        "Wallet"
+	}, function(error)
+		if #error > 0 then
+			return
+		end
+		retrieveComponents()
+	end)
+end)
+
 -- Global variable to store framework details
 local frameworkId, frameworkObj
 
