@@ -50,6 +50,17 @@ local HasItem = function()
                 local itemData = player.Functions.GetItemByName(item)
                 if itemData then return itemData.amount or itemData.count else return 0 end
             end
+        elseif Framework == 'mythic' then
+            -- mythic framework logic for checking items.
+            return function(player, item, source)
+                -- Fetch mythic framework data and inventory count.
+                local char = Fetch:Source(source):GetData("Character")
+                local count = Inventory.Items:GetCount(char:GetData("SID"), 1, item)
+                if count < 1 then
+                    return 0
+                end
+                return count
+            end
         else
             return function()
                 error("Unsupported framework or inventory state for HasItem.")
@@ -140,6 +151,12 @@ local AddItem = function()
                 player.Functions.AddItem(item, count, slot, metadata)
                 TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items[item], 'add', count)
             end
+        elseif Framework == 'mythic' then
+            -- mythic framework logic for adding items.
+            return function(player, item, count, metadata, slot, source)
+                local char = Fetch:Source(source):GetData("Character")
+                return Inventory:AddItem(char:GetData("SID"), item, count, metadata or {}, slot or 1)
+            end
         else
             return function()
                 error("Unsupported framework or inventory state for AddItem.")
@@ -179,6 +196,12 @@ local RemoveItem = function()
                 player.Functions.RemoveItem(item, count, slot, metadata)
                 TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items[item], "remove", count)
             end
+        elseif Framework == 'mythic' then
+            -- mythic framework logic for removing items.
+            return function(player, item, count, metadata, slot, source)
+                local char = Fetch:Source(source):GetData("Character")
+                return Inventory.Items:Remove(char:GetData("SID"), 1, item, count)
+            end
         else
             return function()
                 error("RemoveItem function is not supported in the current framework.")
@@ -213,6 +236,13 @@ local RegisterUsableItem = function()
         elseif Framework == 'qb' then
             return function(item, cb)
                 QBCore.Functions.CreateUseableItem(item, cb)
+            end
+        elseif Framework == 'mythic' then
+            -- mythic framework item registration.
+            return function(item, cb)
+                Inventory.Items:RegisterUse(item, "sd_lib", function(source, itemData)
+                    cb(source, itemData)
+                end)
             end
         else
             return function(item, cb)

@@ -104,6 +104,19 @@ local HasItem = function()
             end
             return 0
         end
+    elseif Framework == 'mythic' then
+        -- Mythic Framework system.
+        return function(items)
+            if type(items) == 'table' then
+                local result = {}
+                for k in pairs(items) do
+                    result[k] = Inventory.Check.Player:HasItem(k, items[k] or 1) and items[k] or 0
+                end
+                return result
+            else
+                return Inventory.Check.Player:HasItem(items, 1) and 1 or 0
+            end
+        end
     else
         return function() return 0 end
     end
