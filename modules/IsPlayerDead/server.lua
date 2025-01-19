@@ -4,7 +4,7 @@
 --- with player objects across different frameworks.
 ---@return function A function that, when called with a player's server ID, returns the corresponding player object.
 local IsPlayerDead = function()
-    if Framework == 'qb' or Framework == 'qbx' then
+    if Framework == 'qb' or Framework == 'qbx' or Framework == 'mythic' then
         return function(source)
             local Player = SD.GetPlayer(source)
             return (Player.PlayerData.metadata['isdead'] or Player.PlayerData.metadata['inlaststand'])
